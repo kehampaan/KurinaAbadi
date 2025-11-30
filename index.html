@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KURNIA ABADI | Monochromatic Engineering</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Oswald:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- A. CORE SETTINGS & RESET (Monochromatic - Approx 50 lines) --- */
+        :root {
+            --bg-color: #0d0d0d; /* Darker Black */
+            --text-main: #f0f0f0; /* Off-White */
+            --text-muted: #6a6a6a; /* Medium Gray */
+            --accent: #f0f0f0; /* ACCENT IS NOW WHITE */
+            --accent-bg: #222222; /* Darker contrast for BGs */
+            --line-color: rgba(255, 255, 255, 0.1);
+            --cursor-size: 20px;
+            --transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* UTILITY CLASSES */
+        .u-bold { font-weight: 600; }
+        .u-text-center { text-align: center; }
+        .u-margin-top-large { margin-top: 80px; }
+        .u-accent-text { color: var(--accent); }
+
+        /* GRAIN OVERLAY */
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.06; pointer-events: none; z-index: 9999;
+        }
+
+        /* --- B. CUSTOM CURSOR & MAGNETIC EFFECT (Monochromatic - Approx 100 lines) --- */
+        .cursor-dot, .cursor-circle {
+            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 10000; pointer-events: none;
+            transition: all 0.1s ease-out;
+        }
+        .cursor-dot { width: 4px; height: 4px; background-color: white; }
+        .cursor-circle {
+            width: var(--cursor-size); height: var(--cursor-size);
+            border: 1px solid var(--text-muted);
+            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+        }
+        .cursor-hover {
+            width: 60px; height: 60px; background-color: rgba(240, 240, 240, 0.1);
+            border-color: var(--accent); backdrop-filter: blur(5px);
+        }
+        .cursor-text {
+            width: 120px; height: 120px; background-color: var(--accent); 
+            border-color: var(--accent); color: var(--bg-color);
+            display: flex; justify-content: center; align-items: center; font-size: 14px;
+            text-transform: uppercase; font-weight: 600;
+        }
+        
+        /* MAGNETIC WRAPPERS */
+        .magnetic-wrap { display: inline-block; }
+        .magnetic-wrap-large { display: block; }
+
+        /* --- C. FULL-SCREEN NAVIGATION DRAWER (Monochromatic - Approx 250 lines) --- */
+        #main-drawer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg-color); z-index: 9990;
+            opacity: 0; visibility: hidden; transition: opacity 0.5s;
+            display: grid; grid-template-columns: 1fr 1fr;
+            padding: 150px 5%;
+        }
+        #main-drawer.is-open { opacity: 1; visibility: visible; }
+        
+        .drawer-nav { 
+            grid-column: 1 / 2; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .drawer-links { font-size: 6vw; font-family: 'Oswald', sans-serif; }
+        .drawer-links a { 
+            display: block; overflow: hidden; line-height: 1; margin-bottom: 20px;
+            transition: var(--transition); text-decoration: none; color: inherit;
+        }
+        .drawer-links a span { 
+            display: inline-block; 
+            transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.76, 0.0, 0.24, 1); 
+        }
+        .drawer-links a:hover { 
+            color: var(--text-muted); 
+            letter-spacing: 5px;
+        }
+        
+        .drawer-info {
+            grid-column: 2 / 3; padding-left: 5%; border-left: 1px solid var(--line-color);
+            display: flex; flex-direction: column; justify-content: space-between;
+            color: var(--text-muted);
+        }
+        .info-col h3 { color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem; }
+        .info-col a { display: block; margin-bottom: 10px; text-decoration: none; color: inherit; }
+        .info-col a:hover { color: var(--text-muted); }
+        .drawer-footer { font-size: 0.9rem; }
+
+        /* C. HEADER & MENU BUTTON */
+        header {
+            position: fixed; top: 0; width: 100%; padding: 30px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; mix-blend-mode: difference;
+        }
+        .logo { font-size: 24px; font-weight: 700; font-family: 'Oswald', sans-serif; letter-spacing: 2px; }
+        
+        .menu-btn {
+            display: flex; gap: 10px; align-items: center; font-size: 12px; text-transform: uppercase;
+        }
+        .hamburger {
+            width: 40px; height: 16px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .hamburger span { width: 100%; height: 1px; background: white; transition: 0.3s; }
+        .menu-btn.is-active .hamburger span:first-child { transform: rotate(45deg) translate(5px, 5px); }
+        .menu-btn.is-active .hamburger span:nth-child(2) { opacity: 0; }
+        .menu-btn.is-active .hamburger span:last-child { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* --- D. SERVICE DETAIL MODAL (Monochromatic - Approx 150 lines) --- */
+        #detail-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9980;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.5s;
+        }
+        #detail-modal.is-open { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            background: var(--accent-bg); padding: 60px; max-width: 800px;
+            border: 1px solid var(--line-color);
+            transform: scale(0.9); transition: transform 0.4s;
+            position: relative;
+        }
+        #detail-modal.is-open .modal-content { transform: scale(1); }
+
+        .modal-close { 
+            position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer;
+            width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;
+        }
+        .modal-close:hover { color: var(--text-muted); }
+
+        .modal-header h2 { font-size: 3rem; color: var(--accent); margin-bottom: 20px; }
+        .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .modal-options ul { list-style: none; margin-top: 20px; }
+        .modal-options ul li { margin-bottom: 15px; }
+        .modal-options ul li i { margin-right: 10px; color: var(--accent); }
+        .modal-cta { margin-top: 30px; }
+        
+        /* --- E. HERO, MARQUEE & ACCORDION (Monochromatic - Approx 150 lines) --- */
+        .hero { height: 100vh; display: flex; align-items: center; position: relative; padding-top: 80px; overflow: hidden; }
+        .hero-bg {
+            position: absolute; top: 0; right: 0; width: 45%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1590644365607-1c5a38d0747d?q=80&w=2574&auto=format&fit=crop') center/cover;
+            filter: grayscale(100%) contrast(1.2); opacity: 0.6;
+            clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
+        }
+        .hero-content { position: relative; z-index: 2; width: 60%; padding-left: 5vw; }
+        .hero-label { color: var(--accent); font-size: 14px; letter-spacing: 4px; margin-bottom: 20px; display: block; }
+        .hero-title { font-size: 6vw; font-weight: 700; margin-bottom: 30px; }
+        .hero-title .line { display: block; overflow: hidden; }
+        .hero-title span { display: block; }
+
+        .marquee-section { padding: 80px 0; border-bottom: 1px solid var(--line-color); }
+        .marquee { overflow: hidden; white-space: nowrap; display: flex; }
+        .marquee-content { display: flex; animation: marquee 20s linear infinite; }
+        .marquee-item {
+            font-size: 8vw; font-family: 'Oswald', sans-serif; font-weight: 700;
+            color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+            margin-right: 50px; text-transform: uppercase;
+        }
+        .marquee-item.filled { color: var(--text-main); -webkit-text-stroke: 0; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        .services-section { padding: 100px 5%; }
+        .section-header { margin-bottom: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .big-num { font-size: 100px; font-family: 'Oswald'; color: rgba(255,255,255,0.05); line-height: 0.8; }
+        
+        .accordion-item { border-top: 1px solid var(--line-color); position: relative; overflow: hidden; transition: 0.4s; }
+        .accordion-item:last-child { border-bottom: 1px solid var(--line-color); }
+        
+        .accordion-header { padding: 40px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .accordion-title { font-size: 2.5rem; font-family: 'Oswald'; transition: 0.4s; }
+        .accordion-icon { font-size: 1.5rem; color: var(--accent); transition: 0.4s; }
+        
+        .accordion-body { height: 0; overflow: hidden; transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1); padding: 0 20px; opacity: 0; }
+        .accordion-body p { max-width: 600px; padding-bottom: 40px; color: var(--text-muted); }
+
+        /* --- F. SIMPLE GRID PORTFOLIO (NEW - Approx 300 lines) --- */
+        .portfolio-section { padding: 100px 5%; background: var(--accent-bg); }
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .project-card {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            position: relative;
+            background: #1a1a1a;
+            border: 1px solid var(--line-color);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card-image-wrap {
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .card-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.2);
+            transition: transform 0.6s, filter 0.6s;
+        }
+        
+        .project-card:hover .card-image-wrap img {
+            transform: scale(1.05);
+            filter: grayscale(0%) contrast(1.0);
+        }
+
+        .card-info {
+            padding: 25px;
+            position: relative;
+            z-index: 2;
+        }
+        .card-info h3 {
+            font-size: 1.8rem;
+            font-family: 'Oswald', sans-serif;
+            margin-bottom: 5px;
+            transition: color 0.3s;
+        }
+        .card-info span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .card-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 3;
+            border: 5px solid var(--accent);
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        
+        .project-card:hover .card-overlay {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .cta-card {
+            background: var(--bg-color);
+            border: 1px solid var(--line-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 400px;
+        }
+        .cta-content h3 {
+            font-size: 2rem;
+            font-family: 'Oswald', sans-serif;
+        }
+
+        /* --- G. TEAM & VALUE SECTION (Monochromatic - Approx 200 lines) --- */
+        .team-section { background: var(--bg-color); padding: 100px 5%; }
+        .team-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 40px; margin-top: 60px;
+        }
+        .team-card {
+            position: relative; overflow: hidden; background: #1a1a1a; padding: 30px;
+            border: 1px solid var(--line-color); transition: var(--transition);
+        }
+        .team-card-image {
+            width: 100%; height: 350px; overflow: hidden; margin-bottom: 20px;
+        }
+        .team-card-image img {
+            width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.2);
+            transition: transform 0.8s, filter 0.8s;
+        }
+        .team-card:hover img { filter: grayscale(0%) contrast(1.0); transform: scale(1.05); }
+        .team-info h3 { font-family: 'Oswald'; font-size: 1.8rem; margin-bottom: 5px; }
+        .team-info p { color: var(--text-muted); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
+        .team-socials { 
+            margin-top: 15px; 
+            opacity: 0; transform: translateY(10px); transition: var(--transition);
+        }
+        .team-card:hover .team-socials { opacity: 1; transform: translateY(0); }
+
+        /* H. FOOTER (Refined) */
+        .footer-section { background: var(--bg-color); padding: 100px 5% 50px; border-top: 1px solid var(--line-color); position: relative; overflow: hidden; }
+        .cta-footer h2 { font-size: 6vw; text-align: center; margin-bottom: 40px; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); transition: 0.5s; cursor: pointer; }
+        .cta-footer h2:hover { color: white; -webkit-text-stroke: 0; }
+        .footer-bottom { display: flex; justify-content: space-between; margin-top: 100px; color: var(--text-muted); font-size: 0.9rem; }
+        .socials a { margin-left: 20px; transition: 0.3s; text-decoration: none; color: inherit; }
+        .socials a:hover { color: var(--text-muted); }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .portfolio-grid { grid-template-columns: 1fr; }
+            .cta-card { min-height: 200px; }
+        }
+        @media (max-width: 768px) {
+            .hero-title { font-size: 10vw; }
+            #main-drawer { grid-template-columns: 1fr; padding: 100px 5%; }
+            .drawer-info { border-left: none; padding-left: 0; margin-top: 50px; }
+            .cursor-circle, .cursor-dot { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div class="grain-overlay"></div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-circle"></div>
+
+    <div id="main-drawer">
+        <div class="drawer-nav">
+            <div class="drawer-links">
+                <a href="#home" data-drawer-close><span>Beranda</span></a>
+                <a href="#services" data-drawer-close><span>Layanan Inti</span></a>
+                <a href="#portfolio-grid" data-drawer-close><span>Portofolio</span></a>
+                <a href="#team" data-drawer-close><span>Tim Kami</span></a>
+                <a href="#contact" data-drawer-close><span>Hubungi Kami</span></a>
+            </div>
+            <div class="u-text-center u-accent-text" style="font-size: 1rem; letter-spacing: 5px;">
+                MONOCHROME VISION
+            </div>
+        </div>
+        <div class="drawer-info">
+            <div>
+                <div class="info-col">
+                    <h3>Kantor Pusat</h3>
+                    <p style="color: var(--text-muted);">Jl. Jend. Sudirman Kav. 50, Jakarta<br>Menara Konstruksi Lt. 12</p>
+                </div>
+                <div class="info-col" style="margin-top: 40px;">
+                    <h3>Kontak Langsung</h3>
+                    <a href="tel:+6281234567890">+62 812 3456 7890</a>
+                    <a href="mailto:info@kurniaabadi.co.id">info@kurniaabadi.co.id</a>
+                </div>
+            </div>
+            <div class="drawer-footer">
+                <a href="#">Instagram</a> | <a href="#">LinkedIn</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-modal">
+        <div class="modal-content">
+            <div class="modal-close" id="modal-close-btn"><i class="fas fa-times"></i></div>
+            <div class="modal-header">
+                <h2 id="modal-title">Service Title</h2>
+                <p id="modal-subtitle" style="color: var(--text-muted);"></p>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <h3 style="color: var(--text-main); margin-bottom: 10px;">Deskripsi Layanan</h3>
+                    <p id="modal-description" style="color: var(--text-muted); font-size: 0.95rem;"></p>
+                </div>
+                <div class="modal-options">
+                    <h3 style="color: var(--text-main);">Opsi Lanjutan</h3>
+                    <ul id="modal-options-list">
+                        </ul>
+                    <div class="modal-cta">
+                        <a href="#contact" class="btn-magnetic" style="background: var(--accent); color: var(--bg-color); padding: 12px 25px; border-color: var(--accent);"><span>Request Quotation</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo magnetic-wrap">KURNIA ABADI</div>
+        <div class="menu-btn magnetic-wrap" id="menu-btn">
+            <span id="menu-text">Menu</span>
+            <div class="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <span class="hero-label">EST. 2008 // BLACK & WHITE</span>
+            <h1 class="hero-title">
+                <span class="line"><span>MEMBANGUN</span></span>
+                <span class="line"><span>STRUKTUR</span></span>
+                <span class="line"><span style="color: transparent; -webkit-text-stroke: 2px white;">BERSIH</span></span>
+            </h1>
+            <p class="hero-desc">
+                Kontraktor umum dan spesialis arsitektur yang menggabungkan presisi teknik dengan estetika minimalis modern.
+            </p>
+            <a href="#contact" class="btn-magnetic"><span>Mulai Konsultasi</span></a>
+        </div>
+    </section>
+
+    <section class="marquee-section">
+        <div class="marquee">
+            <div class="marquee-content">
+                <span class="marquee-item">Architecture</span>
+                <span class="marquee-item filled">Construction</span>
+                <span class="marquee-item">Design</span>
+                <span class="marquee-item filled">Engineering</span>
+                <span class="marquee-item">Renovation</span>
+                <span class="marquee-item">Planning</span>
+                <span class="marquee-item">Architecture</span>
+                <span class="marquee-item filled">Construction</span>
+                <span class="marquee-item">Design</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="services-section" id="services">
+        <div class="section-header">
+            <div>
+                <span style="color: var(--accent); letter-spacing: 2px;">KEAHLIAN KAMI</span>
+                <h2>Solusi Komprehensif</h2>
+            </div>
+            <div class="big-num">01</div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-item magnetic-wrap-large" data-service-id="commercial">
+                <div class="accordion-header">
+                    <span class="accordion-title">Commercial Building</span>
+                    <i class="fas fa-plus accordion-icon"></i>
+                </div>
+                <div class="accordion-body">
+                    <p>Konstruksi gedung perkantoran, hotel, dan retail. Fokus pada efisiensi struktur dan *compliance* standar tinggi.</p>
+                </div>
+            </div>
+            <div class="accordion-item magnetic-wrap-large" data-service-id="residential">
+                <div class="accordion-header">
+                    <span class="accordion-title">Luxury Residential</span>
+                    <i class="fas fa-plus accordion-icon"></i>
+                </div>
+                <div class="accordion-body">
+                    <p>Mewujudkan hunian privat eksklusif dengan detail finishing premium dan instalasi smart home system.</p>
+                </div>
+            </div>
+            <div class="accordion-item magnetic-wrap-large" data-service-id="industrial">
+                <div class="accordion-header">
+                    <span class="accordion-title">Industrial & Factory</span>
+                    <i class="fas fa-plus accordion-icon"></i>
+                </div>
+                <div class="accordion-body">
+                    <p>Pembangunan gudang logistik dan pabrik dengan spesifikasi lantai *heavy duty* dan konstruksi baja bentang lebar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="portfolio-section" id="portfolio-grid">
+        <div class="section-header u-text-center">
+            <span style="color: var(--accent); letter-spacing: 2px;">PROJECT SHOWCASE</span>
+            <h2>Portofolio Terpilih</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 15px auto 0;">
+                Studi kasus proyek-proyek terbaru yang menunjukkan keahlian kami dalam konstruksi minimalis dan struktural.
+            </p>
+        </div>
+
+        <div class="portfolio-grid">
+            <a href="#" class="project-card magnetic-wrap-large" data-project-id="t-v-t">
+                <div class="card-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" alt="The Vertex Tower">
+                </div>
+                <div class="card-info">
+                    <h3>The Vertex Tower</h3>
+                    <span>Commercial / Jakarta</span>
+                </div>
+                <div class="card-overlay">Lihat Studi Kasus</div>
+            </a>
+
+            <a href="#" class="project-card magnetic-wrap-large" data-project-id="z-l-v">
+                <div class="card-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600" alt="Zenith Luxury Villa">
+                </div>
+                <div class="card-info">
+                    <h3>Zenith Luxury Villa</h3>
+                    <span>Residential / Bali</span>
+                </div>
+                <div class="card-overlay">Lihat Studi Kasus</div>
+            </a>
+
+            <a href="#" class="project-card magnetic-wrap-large" data-project-id="a-l-h">
+                <div class="card-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=600" alt="Alpha Logistics Hub">
+                </div>
+                <div class="card-info">
+                    <h3>Alpha Logistics Hub</h3>
+                    <span>Industrial / Bekasi</span>
+                </div>
+                <div class="card-overlay">Lihat Studi Kasus</div>
+            </a>
+
+            <div class="project-card cta-card">
+                <div class="cta-content">
+                    <span class="u-accent-text">20+ TAHUN PENGALAMAN</span>
+                    <h3>Mulai Proyek Besar Anda</h3>
+                    <a href="#contact" class="btn-magnetic" style="border: 1px solid var(--accent); padding: 10px 20px; color: var(--accent); margin-top: 20px;">
+                        <span>Kontak Tim Kami</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="team-section" id="team">
+        <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 20px;">
+            <div>
+                <span style="color: var(--accent); letter-spacing: 2px;">CORE TEAM</span>
+                <h2>Pilar Kami</h2>
+            </div>
+        </div>
+
+        <div class="team-grid">
+            <div class="team-card">
+                <div class="team-card-image">
+                    <img src="" alt="CEO">
+                </div>
+                <div class="team-info">
+                    <h3>Eka Mukti</h3>
+                    <p>Chief Executive Officer</p>
+                </div>
+                <div class="team-socials">
+                    <a href="#" style="margin-right: 15px;"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-card-image">
+                    <img src="" alt="Head Manager">
+                </div>
+                <div class="team-info">
+                    <h3>Putri Wijaya</h3>
+                    <p>Head Manager & Strategist</p>
+                </div>
+                <div class="team-socials">
+                    <a href="#" style="margin-right: 15px;"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+            
+            <div class="team-card">
+                <div class="team-card-image">
+                    <img src="" alt="Programmer">
+                </div>
+                <div class="team-info">
+                    <h3>Chairul Gani</h3>
+                    <p>Lead Programmer</p>
+                </div>
+                <div class="team-socials">
+                    <a href="#" style="margin-right: 15px;"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-section" id="contact">
+        <div class="cta-footer magnetic-wrap-large">
+            <span style="display: block; text-align: center; color: var(--accent); margin-bottom: 20px;"></span>
+            <a href="mailto:info@kurniaabadi.co.id">
+                <h2 style="font-size: 6vw; text-align: center;">EMAIL KAMI</h2>
+            </a>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="left">
+                <p>PT KURNIA ABADI &copy; 2024</p>
+                <p style="color: #444; margin-top: 10px;">Minimalist Construction</p>
+            </div>
+            <div class="contact-details">
+                <p>Jakarta, Indonesia</p>
+                <p>hello@kurniaabadi.com</p>
+                <p>+62 812 3456 7890</p>
+            </div>
+            <div class="socials">
+                <a href="#">INSTAGRAM</a>
+                <a href="#">LINKEDIN</a>
+                <a href="#">WHATSAPP</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const body = document.getElementById('body');
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorCircle = document.querySelector('.cursor-circle');
+        
+        // --- DATA OBJECTS FOR MODAL CONTENT ---
+        const serviceData = {
+            commercial: {
+                title: "Commercial Building",
+                subtitle: "Gedung Perkantoran, Ritel, & Hotel",
+                description: "Spesialisasi konstruksi vertikal dengan fokus pada integrasi sistem mekanikal, elektrikal, dan plumbing (MEP) yang kompleks. Kami memastikan proyek memenuhi semua regulasi IMB/PBG dan keselamatan.",
+                options: [ "Rencana Anggaran Biaya (RAB) Detail", "Akses ke Sub-Kontraktor Bersertifikat", "Jaminan Struktur 10 Tahun" ]
+            },
+            residential: {
+                title: "Luxury Residential",
+                subtitle: "Villa Eksklusif & Hunian Mewah",
+                description: "Layanan *turnkey* (siap huni) mulai dari desain arsitektur 3D hingga penempatan interior custom. Kami menggunakan material premium seperti marmer, kayu jati, dan *smart home systems*.",
+                options: [ "Konsultasi Desain Gratis", "Material Terbaik Kelas A", "Garansi Pemeliharaan 1 Tahun" ]
+            },
+            industrial: {
+                title: "Industrial & Factory",
+                subtitle: "Gudang Logistik & Fasilitas Pabrik",
+                description: "Konstruksi bangunan industri dengan kebutuhan khusus seperti bentang lebar tanpa kolom, lantai beton *heavy duty* (K-350 ke atas), dan sistem ventilasi serta pemadam kebakaran skala industri.",
+                options: [ "Pengujian Kekuatan Beton", "Desain Alur Logistik Efisien", "Pengurusan Izin AMDAL" ]
+            }
+        };
+
+        // --- 1. CURSOR & MAGNETIC EFFECT ---
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+            cursorCircle.style.left = cursorX + 'px';
+            cursorCircle.style.top = cursorY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        const hoverables = document.querySelectorAll('a, button, .menu-btn, .accordion-header, .team-card, .btn-magnetic, .project-card');
+        hoverables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorCircle.classList.add('cursor-hover');
+                cursorDot.style.opacity = '0';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorCircle.classList.remove('cursor-hover');
+                cursorDot.style.opacity = '1';
+            });
+        });
+
+        const magnetics = document.querySelectorAll('.magnetic-wrap, .menu-btn, .btn-magnetic');
+        magnetics.forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translate(0px, 0px)';
+            });
+        });
+
+        // --- 2. FULL-SCREEN DRAWER & MODAL LOGIC ---
+        const menuBtn = document.getElementById('menu-btn');
+        const mainDrawer = document.getElementById('main-drawer');
+        const menuText = document.getElementById('menu-text');
+        const drawerLinks = document.querySelectorAll('[data-drawer-close]');
+        const modal = document.getElementById('detail-modal');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalTitle = document.getElementById('modal-title');
+        const modalSubtitle = document.getElementById('modal-subtitle');
+        const modalDescription = document.getElementById('modal-description');
+        const modalOptionsList = document.getElementById('modal-options-list');
+        const accordionItems = document.querySelectorAll('.accordion-item');
+
+        function toggleDrawer() {
+            const isOpen = mainDrawer.classList.toggle('is-open');
+            menuBtn.classList.toggle('is-active', isOpen);
+            menuText.textContent = isOpen ? 'Tutup' : 'Menu';
+            body.style.overflowY = isOpen ? 'hidden' : 'auto';
+            
+            if (isOpen) {
+                document.querySelectorAll('.drawer-links a span').forEach((span, index) => {
+                    span.style.transform = 'translateY(0)';
+                    span.style.transitionDelay = `${0.05 * index}s`;
+                });
+            } else {
+                document.querySelectorAll('.drawer-links a span').forEach((span) => {
+                    span.style.transform = 'translateY(100%)';
+                    span.style.transitionDelay = '0s';
+                });
+            }
+        }
+        
+        menuBtn.addEventListener('click', toggleDrawer);
+        drawerLinks.forEach(link => link.addEventListener('click', toggleDrawer));
+
+        function toggleAccordion(item) {
+            const body = item.querySelector('.accordion-body');
+            const icon = item.querySelector('.accordion-icon');
+            const isActive = item.classList.toggle('is-open');
+
+            document.querySelectorAll('.accordion-item.is-open').forEach(other => {
+                if (other !== item) {
+                    other.classList.remove('is-open');
+                    other.querySelector('.accordion-body').style.height = '0';
+                    other.querySelector('.accordion-body').style.opacity = '0';
+                    other.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
+                }
+            });
+
+            if (isActive) {
+                body.style.height = body.scrollHeight + 'px';
+                body.style.opacity = '1';
+                icon.style.transform = 'rotate(45deg)';
+            } else {
+                body.style.height = '0';
+                body.style.opacity = '0';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function openServiceModal(serviceId) {
+            const data = serviceData[serviceId];
+            modalTitle.textContent = data.title;
+            modalSubtitle.textContent = data.subtitle;
+            modalDescription.textContent = data.description;
+            
+            modalOptionsList.innerHTML = '';
+            data.options.forEach(option => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-check-circle"></i> ${option}`;
+                modalOptionsList.appendChild(li);
+            });
+
+            modal.classList.add('is-open');
+            body.style.overflowY = 'hidden';
+        }
+
+        function closeServiceModal() {
+            modal.classList.remove('is-open');
+            body.style.overflowY = 'auto';
+        }
+        
+        modalCloseBtn.addEventListener('click', closeServiceModal);
+        
+        accordionItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const serviceId = item.getAttribute('data-service-id');
+                toggleAccordion(item);
+                setTimeout(() => openServiceModal(serviceId), 200);
+            });
+        });
+
+        // --- 3. SCROLL REVEAL & INITIAL ANIMATIONS ---
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.style.transitionDelay = entry.target.getAttribute('data-delay') || '0s';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.team-card, .btn-magnetic, .project-card').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(50px)';
+            el.style.transition = 'all 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
+            el.setAttribute('data-delay', `${index * 0.1}s`);
+            observer.observe(el);
+        });
+        
+        document.querySelectorAll('.hero-title span span').forEach((span, index) => {
+            span.style.transform = 'translateY(100%)';
+            span.style.animation = `revealText 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards ${0.5 + index * 0.1}s`;
+        });
+
+    </script>
+</body>
+</html>
